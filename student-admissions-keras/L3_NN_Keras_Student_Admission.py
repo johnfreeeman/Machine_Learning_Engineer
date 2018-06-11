@@ -65,6 +65,9 @@ plot_points(data_rank4)
 plt.title("Rank 4")
 plt.show()
 
+#^^ Now it seems that the lower the rank, the higher the acceptance rate.
+# Let's use the Rank as one of our inputs.
+
 
 ##(3) One-Hot Encoding the Rank
 #^^get_dummies function 을 사용해보자 (pd)
@@ -78,7 +81,7 @@ one_hot_data = one_hot_data.drop('rank', axis=1)
 one_hot_data[:10]
 
 
-##(4) Scaling the Data
+##(4) Scaling the Data into a range 0-1
 # Copying our data
 processed_data = one_hot_data[:]
 
@@ -86,6 +89,7 @@ processed_data = one_hot_data[:]
 processed_data['gre'] = processed_data['gre']/800
 processed_data['gpa'] = processed_data['gpa']/4.0
 processed_data[:10]
+
 
 
 ##(4) Splitting the data into Training and Testing
@@ -101,9 +105,62 @@ print(test_data[:10])
 
 
 
+##(5) Splitting the Data into Features and Targets (Labels)
+#^^ Final step before the training
+#^^ Also, need to one-hot encode the output ^^ with "to_categorical" function
+#^^ install keras and tensorflow in Anaconda from Terminal
+#^^ >>> pip install keras tensorflow
+import keras
+
+# Separate data and one-hot encode the output
+# Note: We're also turning the data into numpy arrays, in order to train the model in Keras
+features = np.array(train_data.drop('admit', axis=1))
+targets = np.array(keras.utils.to_categorical(train_data['admit'], 2))
+features_test = np.array(test_data.drop('admit', axis=1))
+targets_test = np.array(keras.utils.to_categorical(test_data['admit'], 2))
+
+print(features[:10])
+print(targets[:10])
 
 
 
-    
+##(6) Defining the Model Architecture
+# ^^This is how we use Keras to build our Neural Network
+# Imports
+import numpy as np
+from keras.models import Sequential
+from keras.layers.core import Dense, Dropout, Activation
+from keras.optimizers import SGD
+from keras.utils import np_utils
+
+# Builidng the model
+model = Sequential()
+model.add(Dense(128, activation='relu', input_shape=(6,)))
+model.add(Dropout(.2))
+model.add(Dense(64, activation='relu'))
+model.add(Dropout(.1))
+model.add(Dense(2, activation='softmax'))
+
+# Compiling the model
+model.compile(loss = 'categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.summary()
+
+
+
+##(7) Training the Model
+# Training the model
+model.fit(features, targets, epochs=200, batch_size=100, verbose=0)
+
+
+
+##(8) Scoring the Model
+# Evaluating the model on the training and testing set
+score = model.evaluate(features, targets)
+print("\n Training Accuracy:", score[1])
+score = model.evaluate(features_test, targets_test)
+print("\n Testing Accuracy:", score[1])
+
+
+##(9) Challenge: Play with the Parameters!
 
 
